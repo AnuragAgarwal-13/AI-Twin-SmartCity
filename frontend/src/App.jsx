@@ -4,6 +4,7 @@ import MainLayout from "./layouts/MainLayout";
 
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Traffic from "./pages/Traffic/Traffic";
+import Weather from "./pages/Weather/Weather";
 
 function App() {
   return (
@@ -20,7 +21,13 @@ function App() {
           <Route
             path="/traffic"
             element={<Traffic />}
-          />[
+          />
+
+          <Route
+            path="/weather"
+            element={<Weather />}
+          />
+
         </Route>
 
       </Routes>

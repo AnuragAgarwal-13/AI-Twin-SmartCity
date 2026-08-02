@@ -276,3 +276,112 @@ def get_high_risk_roads(db: Session):
         }
         for row in result
     ]
+
+# ======================================================
+# WEATHER MODULE
+# ======================================================
+
+# ============================
+# Weather Summary
+# ============================
+def get_weather_summary(db: Session):
+
+    average_temperature = db.query(
+        func.avg(TransportationData.temperature)
+    ).scalar()
+
+    average_humidity = db.query(
+        func.avg(TransportationData.humidity)
+    ).scalar()
+
+    average_visibility = db.query(
+        func.avg(TransportationData.Visibility)
+    ).scalar()
+
+    return {
+        "average_temperature": round(average_temperature or 0, 2),
+        "average_humidity": round(average_humidity or 0, 2),
+        "average_visibility": round(average_visibility or 0, 2)
+    }
+
+
+# ============================
+# Weather Filter
+# ============================
+def filter_weather(
+    db: Session,
+    weather: str = None,
+    temperature: str = None,
+    humidity: str = None
+):
+
+    query = db.query(TransportationData)
+
+    # ----------------------------
+    # Filter by Weather
+    # ----------------------------
+    if weather:
+        query = query.filter(
+            func.lower(TransportationData.Weather) == weather.lower()
+        )
+
+    # ----------------------------
+    # Filter by Temperature Range
+    # ----------------------------
+    if temperature:
+
+       
+
+        if temperature == "11-20":
+            query = query.filter(
+                TransportationData.temperature >= 11,
+                TransportationData.temperature <= 20
+            )
+
+        elif temperature == "21-30":
+            query = query.filter(
+                TransportationData.temperature >= 21,
+                TransportationData.temperature <= 30
+            )
+
+        elif temperature == "31-40":
+            query = query.filter(
+                TransportationData.temperature >= 31,
+                TransportationData.temperature <= 40
+            )
+
+        elif temperature == "40+":
+            query = query.filter(
+                TransportationData.temperature >= 40
+            )
+
+    # ----------------------------
+    # Filter by Humidity Range
+    # ----------------------------
+    if humidity:
+
+        if humidity == "0-25":
+            query = query.filter(
+                TransportationData.humidity >= 0,
+                TransportationData.humidity <= 25
+            )
+
+        elif humidity == "26-50":
+            query = query.filter(
+                TransportationData.humidity >= 26,
+                TransportationData.humidity <= 50
+            )
+
+        elif humidity == "51-75":
+            query = query.filter(
+                TransportationData.humidity >= 51,
+                TransportationData.humidity <= 75
+            )
+
+        elif humidity == "76-100":
+            query = query.filter(
+                TransportationData.humidity >= 76,
+                TransportationData.humidity <= 100
+            )
+
+    return query.all()

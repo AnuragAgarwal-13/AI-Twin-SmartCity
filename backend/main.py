@@ -193,3 +193,31 @@ def high_risk_roads(
     db: Session = Depends(get_db)
 ):
     return crud.get_high_risk_roads(db)
+# ======================================================
+# WEATHER MODULE
+# ======================================================
+
+# -----------------------------
+# Weather Summary
+# -----------------------------
+@app.get("/weather/summary")
+def weather_summary(db: Session = Depends(get_db)):
+    return crud.get_weather_summary(db)
+
+
+# -----------------------------
+# Weather Filter
+# -----------------------------
+@app.get("/weather/filter", response_model=list[TransportationDataSchema])
+def weather_filter(
+    weather: str = None,
+    temperature: str = None,
+    humidity: str = None,
+    db: Session = Depends(get_db)
+):
+    return crud.filter_weather(
+        db,
+        weather,
+        temperature,
+        humidity
+    )
