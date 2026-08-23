@@ -1,22 +1,33 @@
 # Python
+venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Virtual Environment
-venv/
-
-# Environment Variables
+# Environment variables
 .env
+.env.*
 
-# VS Code
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Build/cache
+.vite/
+.cache/
+
+# Python tools
+.pytest_cache/
+
+# IDE
 .vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Logs
 *.log
-
-# OS files
-.DS_Store
-Thumbs.db
-node_modules

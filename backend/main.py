@@ -4,17 +4,29 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.database import SessionLocal
 from backend import crud
-from backend.schemas import TransportationDataSchema
+from backend.schemas import SmartCityDataSchema
 
-app = FastAPI(title="AI Twin Smart City API")
 
-# -----------------------------
+# ============================================================
+# FASTAPI APP
+# ============================================================
+
+app = FastAPI(
+    title="AI Twin Smart City API",
+    description="Backend API for Bengaluru Smart City Digital Twin",
+    version="1.0.0",
+)
+
+
+# ============================================================
 # CORS
-# -----------------------------
+# ============================================================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -22,98 +34,79 @@ app.add_middleware(
 )
 
 
-# -----------------------------
-# Database Dependency
-# -----------------------------
+# ============================================================
+# DATABASE DEPENDENCY
+# ============================================================
+
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
     finally:
         db.close()
 
 
-# -----------------------------
-# Home API
-# -----------------------------
+# ============================================================
+# ROOT
+# ============================================================
+
 @app.get("/")
-def home():
+def root():
     return {
-        "message": "AI Twin Smart City Backend is Running!"
+        "message": "AI Twin Smart City API is running",
+        "city": "Bengaluru",
+        "status": "online",
     }
 
 
-# -----------------------------
-# Summary API
-# -----------------------------
+# ============================================================
+# DASHBOARD
+# ============================================================
+
 @app.get("/summary")
-def summary():
-    db = SessionLocal()
-
-    total = crud.get_total_records(db)
-
-    db.close()
-
-    return {
-        "total_records": total
-    }
-
-
-# -----------------------------
-# Dashboard API
-# -----------------------------
-@app.get("/dashboard")
-def dashboard(db: Session = Depends(get_db)):
+def dashboard_summary(
+    db: Session = Depends(get_db)
+):
     return crud.get_dashboard_summary(db)
 
 
-# ======================================================
-# TRAFFIC APIs
-# ======================================================
-
-# Get All Traffic Records
-@app.get("/traffic", response_model=list[TransportationDataSchema])
-def get_all_traffic(db: Session = Depends(get_db)):
-    return crud.get_all_traffic(db)
-
-
-# Search Traffic by Road ID
-@app.get("/traffic/search/{road_id}", response_model=list[TransportationDataSchema])
-def search_traffic(
-    road_id: str,
+@app.get("/dashboard")
+def dashboard(
     db: Session = Depends(get_db)
 ):
-    return crud.get_traffic_by_road(db, road_id)
+    return crud.get_dashboard_summary(db)
 
 
-# ======================================================
-# NEW COMBINED FILTER API
-# ======================================================
+# ============================================================
+# COMMON RECORD APIs
+# ============================================================
+
 @app.get(
-    "/traffic/filter",
-    response_model=list[TransportationDataSchema]
+    "/records",
+    response_model=list[SmartCityDataSchema]
 )
-def filter_traffic(
-    road_id: str = None,
-    weather: str = None,
-    density: str = None,
+def get_all_records(
     db: Session = Depends(get_db)
 ):
-    return crud.filter_traffic(
-        db=db,
-        road_id=road_id,
-        weather=weather,
-        density=density
-    )
-# Get Traffic Record by ID
-@app.get("/traffic/{record_id}", response_model=TransportationDataSchema)
-def get_traffic(
+    return crud.get_all_records(db)
+
+
+@app.get(
+    "/records/{record_id}",
+    response_model=SmartCityDataSchema
+)
+def get_record(
     record_id: int,
     db: Session = Depends(get_db)
 ):
-    record = crud.get_traffic_by_id(db, record_id)
 
-    if record is None:
+    record = crud.get_record_by_id(
+        db,
+        record_id
+    )
+
+    if not record:
         raise HTTPException(
             status_code=404,
             detail="Record not found"
@@ -122,97 +115,116 @@ def get_traffic(
     return record
 
 
-# Weather Filter
-@app.get("/traffic/weather/{weather}")
-def get_traffic_weather(
-    weather: str,
+# ============================================================
+# TRAFFIC
+# ============================================================
+
+@app.get(
+    "/traffic",
+    response_model=list[SmartCityDataSchema]
+)
+def get_traffic(
     db: Session = Depends(get_db)
 ):
-    return crud.get_traffic_by_weather(db, weather)
+    return crud.get_all_traffic(db)
 
 
-# Density Filter
-@app.get("/traffic/density/{density}")
-def get_density(
-    density: str,
+@app.get(
+    "/traffic/{record_id}",
+    response_model=SmartCityDataSchema
+)
+def get_traffic_record(
+    record_id: int,
     db: Session = Depends(get_db)
 ):
-    return crud.get_traffic_by_density(db, density)
+
+    record = crud.get_traffic_by_id(
+        db,
+        record_id
+    )
+
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail="Traffic record not found"
+        )
+
+    return record
 
 
+@app.get("/traffic/filter")
+def traffic_filter(
+    road_id: str | None = None,
+    weather: str | None = None,
+    density: str | None = None,
+    db: Session = Depends(get_db)
+):
+    return crud.filter_traffic(
+        db,
+        road_id,
+        weather,
+        density
+    )
 
 
-# ======================================================
-# ANALYTICS APIs
-# ======================================================
-
-@app.get("/analytics/weather")
-def weather_statistics(
+@app.get("/traffic/statistics/weather")
+def traffic_weather_statistics(
     db: Session = Depends(get_db)
 ):
     return crud.get_weather_statistics(db)
 
 
-@app.get("/analytics/vehicle")
-def vehicle_statistics(
+@app.get("/traffic/statistics/vehicles")
+def traffic_vehicle_statistics(
     db: Session = Depends(get_db)
 ):
     return crud.get_vehicle_statistics(db)
 
 
-@app.get("/analytics/road-condition")
-def road_condition_statistics(
+@app.get("/traffic/statistics/roads")
+def traffic_road_statistics(
     db: Session = Depends(get_db)
 ):
     return crud.get_road_condition_stats(db)
 
 
-@app.get("/analytics/accident")
-def accident_statistics(
-    db: Session = Depends(get_db)
-):
-    return crud.get_accident_stats(db)
-
-
-@app.get("/analytics/speed/weather")
-def average_speed_weather(
+@app.get("/traffic/statistics/speed")
+def traffic_speed_statistics(
     db: Session = Depends(get_db)
 ):
     return crud.get_average_speed_by_weather(db)
 
 
-@app.get("/analytics/road")
-def vehicle_count_by_road(
+@app.get("/traffic/statistics/vehicle-count")
+def traffic_vehicle_count(
     db: Session = Depends(get_db)
 ):
     return crud.get_vehicle_count_by_road(db)
 
 
-@app.get("/analytics/high-risk")
+@app.get("/traffic/high-risk-roads")
 def high_risk_roads(
     db: Session = Depends(get_db)
 ):
     return crud.get_high_risk_roads(db)
-# ======================================================
-# WEATHER MODULE
-# ======================================================
 
-# -----------------------------
-# Weather Summary
-# -----------------------------
+
+# ============================================================
+# WEATHER
+# ============================================================
+
 @app.get("/weather/summary")
-def weather_summary(db: Session = Depends(get_db)):
+def weather_summary(
+    db: Session = Depends(get_db)
+):
     return crud.get_weather_summary(db)
 
 
-# -----------------------------
-# Weather Filter
-# -----------------------------
-@app.get("/weather/filter", response_model=list[TransportationDataSchema])
+@app.get("/weather/filter")
 def weather_filter(
-    weather: str = None,
-    temperature: str = None,
-    humidity: str = None,
+    weather: str | None = None,
+    temperature: str | None = None,
+    humidity: str | None = None,
     db: Session = Depends(get_db)
 ):
     return crud.filter_weather(
@@ -221,3 +233,127 @@ def weather_filter(
         temperature,
         humidity
     )
+
+
+# ============================================================
+# AIR QUALITY
+# ============================================================
+
+@app.get("/air-quality/summary")
+def air_quality_summary(
+    db: Session = Depends(get_db)
+):
+    return crud.get_air_quality_summary(db)
+
+
+@app.get("/air-quality/filter")
+def air_quality_filter(
+    category: str | None = None,
+    status: str | None = None,
+    db: Session = Depends(get_db)
+):
+    return crud.filter_air_quality(
+        db,
+        category,
+        status
+    )
+
+
+@app.get("/air-quality/categories")
+def air_quality_categories(
+    db: Session = Depends(get_db)
+):
+    return crud.get_aqi_category_statistics(db)
+
+
+# ============================================================
+# WATER
+# ============================================================
+
+@app.get("/water/summary")
+def water_summary(
+    db: Session = Depends(get_db)
+):
+    return crud.get_water_summary(db)
+
+
+@app.get("/water/leakages")
+def water_leakages(
+    db: Session = Depends(get_db)
+):
+    return crud.get_water_leakages(db)
+
+
+@app.get("/water/supply")
+def water_supply(
+    db: Session = Depends(get_db)
+):
+    return crud.get_water_supply_statistics(db)
+
+
+# ============================================================
+# ENERGY
+# ============================================================
+
+@app.get("/energy/summary")
+def energy_summary(
+    db: Session = Depends(get_db)
+):
+    return crud.get_energy_summary(db)
+
+
+@app.get("/energy/sources")
+def energy_sources(
+    db: Session = Depends(get_db)
+):
+    return crud.get_energy_source_statistics(db)
+
+
+@app.get("/energy/outages")
+def energy_outages(
+    db: Session = Depends(get_db)
+):
+    return crud.get_power_outage_records(db)
+
+
+# ============================================================
+# CRIME & PUBLIC SAFETY
+# ============================================================
+
+@app.get("/crime/summary")
+def crime_summary(
+    db: Session = Depends(get_db)
+):
+    return crud.get_crime_summary(db)
+
+
+@app.get("/crime/types")
+def crime_types(
+    db: Session = Depends(get_db)
+):
+    return crud.get_crime_type_statistics(db)
+
+
+@app.get("/crime/severity")
+def crime_severity(
+    db: Session = Depends(get_db)
+):
+    return crud.get_crime_severity_statistics(db)
+
+
+@app.get("/crime/hotspots")
+def crime_hotspots(
+    db: Session = Depends(get_db)
+):
+    return crud.get_crime_hotspots(db)
+
+
+# ============================================================
+# ZONES
+# ============================================================
+
+@app.get("/zones")
+def zone_statistics(
+    db: Session = Depends(get_db)
+):
+    return crud.get_zone_statistics(db)

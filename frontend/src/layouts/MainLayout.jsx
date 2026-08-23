@@ -1,19 +1,28 @@
+import { Outlet } from "react-router-dom";
+
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
-import { Outlet } from "react-router-dom";
 
 function MainLayout() {
   return (
-    <div className="flex h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-900 text-white flex">
+
+      {/* ================= SIDEBAR ================= */}
       <Sidebar />
 
-      <div className="flex flex-col flex-1">
+      {/* ================= MAIN CONTENT ================= */}
+      <div className="flex-1 min-w-0 flex flex-col">
+
+        {/* ================= NAVBAR ================= */}
         <Navbar />
 
-        <main className="flex-1 bg-slate-900 p-6 overflow-auto">
+        {/* ================= PAGE CONTENT ================= */}
+        <main className="flex-1 bg-slate-900 overflow-y-auto">
           <Outlet />
         </main>
+
       </div>
+
     </div>
   );
 }
