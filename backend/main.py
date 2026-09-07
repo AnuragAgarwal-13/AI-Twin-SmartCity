@@ -1,21 +1,13 @@
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from backend.database import SessionLocal
 from backend import crud
 from backend.schemas import SmartCityDataSchema
 
 
-# ============================================================
-# FASTAPI APP
-# ============================================================
-
-app = FastAPI(
-    title="AI Twin Smart City API",
-    description="Backend API for Bengaluru Smart City Digital Twin",
-    version="1.0.0",
-)
+app = FastAPI()
 
 
 # ============================================================
@@ -26,7 +18,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://localhost:5175",
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5175",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -100,11 +94,7 @@ def get_record(
     record_id: int,
     db: Session = Depends(get_db)
 ):
-
-    record = crud.get_record_by_id(
-        db,
-        record_id
-    )
+    record = crud.get_record_by_id(db, record_id)
 
     if not record:
         raise HTTPException(
@@ -137,11 +127,7 @@ def get_traffic_record(
     record_id: int,
     db: Session = Depends(get_db)
 ):
-
-    record = crud.get_traffic_by_id(
-        db,
-        record_id
-    )
+    record = crud.get_traffic_by_id(db, record_id)
 
     if not record:
         raise HTTPException(
