@@ -119,24 +119,8 @@ def get_traffic(
     return crud.get_all_traffic(db)
 
 
-@app.get(
-    "/traffic/{record_id}",
-    response_model=SmartCityDataSchema
-)
-def get_traffic_record(
-    record_id: int,
-    db: Session = Depends(get_db)
-):
-    record = crud.get_traffic_by_id(db, record_id)
-
-    if not record:
-        raise HTTPException(
-            status_code=404,
-            detail="Traffic record not found"
-        )
-
-    return record
-
+# IMPORTANT:
+# Keep /traffic/filter BEFORE /traffic/{record_id}
 
 @app.get("/traffic/filter")
 def traffic_filter(
@@ -153,46 +137,27 @@ def traffic_filter(
     )
 
 
-@app.get("/traffic/statistics/weather")
-def traffic_weather_statistics(
+@app.get(
+    "/traffic/{record_id}",
+    response_model=SmartCityDataSchema
+)
+def get_traffic_record(
+    record_id: int,
     db: Session = Depends(get_db)
 ):
-    return crud.get_weather_statistics(db)
 
+    record = crud.get_traffic_by_id(
+        db,
+        record_id
+    )
 
-@app.get("/traffic/statistics/vehicles")
-def traffic_vehicle_statistics(
-    db: Session = Depends(get_db)
-):
-    return crud.get_vehicle_statistics(db)
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail="Traffic record not found"
+        )
 
-
-@app.get("/traffic/statistics/roads")
-def traffic_road_statistics(
-    db: Session = Depends(get_db)
-):
-    return crud.get_road_condition_stats(db)
-
-
-@app.get("/traffic/statistics/speed")
-def traffic_speed_statistics(
-    db: Session = Depends(get_db)
-):
-    return crud.get_average_speed_by_weather(db)
-
-
-@app.get("/traffic/statistics/vehicle-count")
-def traffic_vehicle_count(
-    db: Session = Depends(get_db)
-):
-    return crud.get_vehicle_count_by_road(db)
-
-
-@app.get("/traffic/high-risk-roads")
-def high_risk_roads(
-    db: Session = Depends(get_db)
-):
-    return crud.get_high_risk_roads(db)
+    return record
 
 
 # ============================================================

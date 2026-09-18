@@ -44,7 +44,7 @@ def get_dashboard_summary(db: Session):
         or 0
     )
 
-    crime_incidents = (
+    total_accidents = (
         db.query(func.sum(SmartCityData.Incident_Count))
         .scalar()
         or 0
@@ -54,9 +54,8 @@ def get_dashboard_summary(db: Session):
         "total_records": total_records,
         "total_vehicles": int(total_vehicles),
         "average_speed": round(float(average_speed), 2),
-        "crime_incidents": int(crime_incidents),
+        "total_accidents": int(total_accidents),
     }
-
 
 # ============================================================
 # TRAFFIC MODULE

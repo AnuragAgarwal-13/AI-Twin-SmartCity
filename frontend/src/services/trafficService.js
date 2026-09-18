@@ -1,8 +1,5 @@
 const BASE_URL = "http://127.0.0.1:8000";
 
-// ==============================
-// Dashboard Summary
-// ==============================
 export async function getDashboardSummary() {
   const response = await fetch(`${BASE_URL}/dashboard`);
 
@@ -13,9 +10,6 @@ export async function getDashboardSummary() {
   return await response.json();
 }
 
-// ==============================
-// Get All Traffic Records
-// ==============================
 export async function getAllTraffic() {
   const response = await fetch(`${BASE_URL}/traffic`);
 
@@ -26,9 +20,6 @@ export async function getAllTraffic() {
   return await response.json();
 }
 
-// ==============================
-// Combined Traffic Filter
-// ==============================
 export async function filterTraffic(
   roadId = "",
   weather = "",
@@ -37,8 +28,9 @@ export async function filterTraffic(
   const params = new URLSearchParams();
 
   if (roadId.trim()) {
-  params.append("road_id", roadId.trim());
-}
+    params.append("road_id", roadId.trim());
+  }
+
   if (weather !== "" && weather !== "All Weather") {
     params.append("weather", weather);
   }
@@ -53,6 +45,16 @@ export async function filterTraffic(
 
   if (!response.ok) {
     throw new Error("Failed to filter traffic");
+  }
+
+  return await response.json();
+}
+
+export async function getAllRecords() {
+  const response = await fetch(`${BASE_URL}/records`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch smart city records");
   }
 
   return await response.json();
